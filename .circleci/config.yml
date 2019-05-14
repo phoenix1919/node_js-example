@@ -35,7 +35,7 @@ jobs:
     machine: true
     steps:
       - checkout
-      - run: docker build -t circleci_built_container
+      - run: docker build -t circleci_built_container .
       # Could push up to a registry at this stage
       - run: docker save -o circleci_built_container.tar circleci_built_container
       - store_artifacts:
