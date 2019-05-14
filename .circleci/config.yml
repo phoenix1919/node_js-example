@@ -34,16 +34,50 @@ jobs:
       # run tests!
       - run: yarn test
       
-#   build_docker:
-#     machine: true
-#     steps:
-#       - checkout
-#       - run: docker build -t circleci_built_container .
-#       # Could push up to a registry at this stage
-#       - run: docker save -o circleci_built_container.tar circleci_built_container
-#       - store_artifacts:
-#           path: circleci_built_container.tar
-#           destination: circleci_built_container.tar
+  build_docker:
+    docker:
+      - image: circleci/node:7.10
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run: docker build -t circleci_built_container .
+      # Could push up to a registry at this stage
+      - run: mkdir docker_image && docker save -o docker_image/circleci_built_container.tar circleci_built_container
+      - store_artifacts:
+          path: docker_image/circleci_built_container.tar
+          destination: circleci_built_container.tar
+      - persist_to_workspace:
+          root: .
+          paths:
+            - docker_image
+
+  deploy_docker:
+    docker:
+      - image: circleci/python:3.6.1
+    environment:
+      AWS_DEFAULT_OUTPUT: json
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace
+      - aws-cli/install
+      - aws-cli/configure:
+          aws-access-key-id: "$AWS_ACCESS_KEY_ID"
+          aws-region: "$AWS_DEFAULT_REGION"
+      - run:
+          name: Load image
+          command: |
+            docker load --input workspace/docker_image/circleci_built_container.tar
+      - run:
+          name: Setup common environment variables
+          command: |
+            echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
+      - run:
+          name: Push image
+          command: |
+            eval $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+            docker push $FULL_IMAGE_NAME
 
 workflows:
   version: 2
@@ -53,11 +87,7 @@ workflows:
       - build_docker:
           requires:
             - test
-      - aws-ecr/build_and_push_image:
-          account-url: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-          repo: "${AWS_RESOURCE_NAME_PREFIX}"
-          region: ${AWS_DEFAULT_REGION}
-          tag: "${CIRCLE_SHA1}"
+      - deploy_docker:
           requires:
             - test
             - build_docker
