@@ -40,9 +40,13 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker
-      - run: docker build -t circleci_built_container .
+      - run:
+          name: Setup common environment variables
+          command: |
+            echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
+      - run: 'docker build -t ${FULL_IMAGE_NAME} .'
       # Could push up to a registry at this stage
-      - run: mkdir docker_image && docker save -o docker_image/circleci_built_container.tar circleci_built_container
+      - run: 'mkdir docker_image && docker save -o docker_image/circleci_built_container.tar ${FULL_IMAGE_NAME}'
       - store_artifacts:
           path: docker_image/circleci_built_container.tar
           destination: circleci_built_container.tar
