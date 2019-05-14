@@ -3,6 +3,9 @@
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
 version: 2
+orbs:
+  aws-ecr: circleci/aws-ecr@0.0.2
+  aws-ecs: circleci/aws-ecs@0.0.8
 jobs:
   test:
     docker:
@@ -31,16 +34,16 @@ jobs:
       # run tests!
       - run: yarn test
       
-  build_docker:
-    machine: true
-    steps:
-      - checkout
-      - run: docker build -t circleci_built_container .
-      # Could push up to a registry at this stage
-      - run: docker save -o circleci_built_container.tar circleci_built_container
-      - store_artifacts:
-          path: circleci_built_container.tar
-          destination: circleci_built_container.tar
+#   build_docker:
+#     machine: true
+#     steps:
+#       - checkout
+#       - run: docker build -t circleci_built_container .
+#       # Could push up to a registry at this stage
+#       - run: docker save -o circleci_built_container.tar circleci_built_container
+#       - store_artifacts:
+#           path: circleci_built_container.tar
+#           destination: circleci_built_container.tar
 
 workflows:
   version: 2
@@ -50,3 +53,12 @@ workflows:
       - build_docker:
           requires:
             - test
+      - aws-ecr/build_and_push_image:
+          account-url: "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+          repo: "${AWS_RESOURCE_NAME_PREFIX}"
+          region: ${AWS_DEFAULT_REGION}
+          tag: "${CIRCLE_SHA1}"
+          requires:
+            - test
+            - build_docker
+
