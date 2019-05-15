@@ -18,5 +18,13 @@ steps:
 - script: |
     npm install
     npm test
-    npm run build
-  displayName: 'npm install, test, and build'
+  displayName: 'npm install and test'
+
+- task: DockerInstaller@0
+  inputs:
+    dockerVersion: '17.09.0-ce'
+
+- task: Docker@2
+  inputs:
+    command: 'build'
+    Dockerfile: '**/Dockerfile'
