@@ -6,6 +6,7 @@ version: 2.1
 orbs:
   aws-cli: circleci/aws-cli@0.1.4
   aws-ecs: circleci/aws-ecs@0.0.3
+  azure-cli: circleci/azure-cli@1.1.0
 jobs:
   test:
     docker:
@@ -55,7 +56,7 @@ jobs:
           paths:
             - docker_image
 
-  deploy_docker:
+  deploy_docker_aws:
     docker:
       - image: circleci/python:3.6.1
     environment:
@@ -83,6 +84,30 @@ jobs:
             eval $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
             docker push $FULL_IMAGE_NAME
 
+  deploy_docker_azure:
+    docker:
+      - image: circleci/python:3.6.1
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace
+      - azure-cli/install
+      - azure-cli/login-with-service-principal
+      - run:
+          name: Load image
+          command: |
+            docker load --input workspace/docker_image/circleci_built_container.tar
+      - run:
+          name: Setup common environment variables
+          command: |
+            echo 'export FULL_IMAGE_NAME="phil30516test.azurecr.io/circleci:${CIRCLE_SHA1}"' >> $BASH_ENV
+      - run:
+          name: Push image
+          command: |
+            eval $(az acr login --name phil30516test)
+            docker push $FULL_IMAGE_NAME
+
 workflows:
   version: 2
   all:
@@ -91,7 +116,11 @@ workflows:
       - build_docker:
           requires:
             - test
-      - deploy_docker:
+      - deploy_docker_aws:
+          requires:
+            - test
+            - build_docker
+      - deploy_docker_azure:
           requires:
             - test
             - build_docker
