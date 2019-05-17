@@ -78,11 +78,17 @@ jobs:
           name: Setup common environment variables
           command: |
             echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
+            echo 'export LATEST_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:latest"' >> $BASH_ENV
       - run:
-          name: Push image
+          name: Tag image with :latest as well
+          command: |
+            docker tag $FULL_IMAGE_NAME $LATEST_IMAGE_NAME
+      - run:
+          name: Push image tags
           command: |
             eval $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
             docker push $FULL_IMAGE_NAME
+            docker push $LATEST_IMAGE_NAME
 
   deploy_docker_azure:
     executor: azure-cli/default
