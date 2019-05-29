@@ -46,9 +46,9 @@ jobs:
           name: Setup common environment variables
           command: |
             echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
-      - run: 'docker build -t ${FULL_IMAGE_NAME} .'
+      - run: 'docker build -t circle_docker_test:latest .'
       # Could push up to a registry at this stage
-      - run: 'mkdir docker_image && docker save -o docker_image/circleci_built_container.tar ${FULL_IMAGE_NAME}'
+      - run: 'mkdir docker_image && docker save -o docker_image/circleci_built_container.tar circle_docker_test:latest'
       - store_artifacts:
           path: docker_image/circleci_built_container.tar
           destination: circleci_built_container.tar
@@ -101,6 +101,10 @@ jobs:
             echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
             echo 'export LATEST_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:latest"' >> $BASH_ENV
       - run:
+          name: Tag image correctly
+          command: |
+            docker tag circle_docker_test:latest $FULL_IMAGE_NAME
+      - run:
           name: Tag image with :latest as well
           command: |
             docker tag $FULL_IMAGE_NAME $LATEST_IMAGE_NAME
@@ -128,6 +132,10 @@ jobs:
           name: Setup common environment variables
           command: |
             echo 'export FULL_IMAGE_NAME="phil30516test.azurecr.io/circleci:${CIRCLE_SHA1}"' >> $BASH_ENV
+      - run:
+          name: Tag image correctly
+          command: |
+            docker tag circle_docker_test:latest $FULL_IMAGE_NAME
       - run:
           name: Push image
           command: |
