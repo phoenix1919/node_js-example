@@ -58,7 +58,7 @@ jobs:
             - docker_image
 
   vuln_scan:
-    executor: clair_scanner/default
+    executor: clair-scanner/default
     steps:
       - checkout
       - setup_remote_docker
@@ -72,7 +72,7 @@ jobs:
           name: Setup common environment variables
           command: |
             echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
-      - clair_scanner/scan:
+      - clair-scanner/scan:
           image: ${FULL_IMAGE_NAME}
         
 
