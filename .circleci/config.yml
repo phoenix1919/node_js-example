@@ -61,7 +61,7 @@ jobs:
     executor: clair-scanner/default
     steps:
       - checkout
-      - setup_remote_docker
+#      - setup_remote_docker
       - attach_workspace:
           at: workspace
       - run:
