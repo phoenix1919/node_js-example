@@ -81,7 +81,7 @@ jobs:
       - run:
           name: "Vulnerability scan"
           command: |
-            chmod +x ./vuln_scan.sh && ./vuln_scan.sh
+            chmod +x .circleci/vuln_scan.sh && .circleci/vuln_scan.sh
         
 
   deploy_docker_aws:
