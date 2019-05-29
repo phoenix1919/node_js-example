@@ -64,10 +64,10 @@ jobs:
 #      - setup_remote_docker
       - attach_workspace:
           at: workspace
-      - run:
-          name: Load image
-          command: |
-            docker load --input workspace/docker_image/circleci_built_container.tar
+#      - run:
+#          name: Load image
+#          command: |
+#            docker load --input workspace/docker_image/circleci_built_container.tar
       - run:
           name: Setup common environment variables
           command: |
