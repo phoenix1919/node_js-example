@@ -57,25 +57,26 @@ jobs:
           paths:
             - docker_image
 
+# Scan the base image instead of the created image
   vuln_scan:
     executor: clair-scanner/default
     steps:
       - checkout
 #      - setup_remote_docker
-      - attach_workspace:
-          at: workspace
+#      - attach_workspace:
+#          at: workspace
 #      - run:
 #          name: Load image
 #          command: |
 #            docker load --input workspace/docker_image/circleci_built_container.tar
-      - run:
-          name: Setup common environment variables
-          command: |
-            echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
+#      - run:
+#          name: Setup common environment variables
+#          command: |
+#            echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
       - clair-scanner/scan:
 #          image: ${FULL_IMAGE_NAME}
 #          image_file: workspace/docker_image/circleci_built_container.tar
-          image: debian:jessie
+          image: ubuntu:disco
         
 
   deploy_docker_aws:
@@ -153,11 +154,13 @@ workflows:
             - test
       - vuln_scan:
           requires:
-            - build_docker
+            - test
       - deploy_docker_aws:
           requires:
+            - build_docker
             - vuln_scan
       - deploy_docker_azure:
           requires:
+            - build_docker
             - vuln_scan
 
