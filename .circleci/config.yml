@@ -7,6 +7,7 @@ orbs:
   aws-cli: circleci/aws-cli@0.1.4
   aws-ecs: circleci/aws-ecs@0.0.3
   azure-cli: circleci/azure-cli@1.1.0
+  clair-scanner: ovotech/clair-scanner@1.4.26
 jobs:
   test:
     docker:
@@ -55,6 +56,25 @@ jobs:
           root: .
           paths:
             - docker_image
+
+  vuln_scan:
+    executor: clair_scanner/default
+    steps:
+      - checkout
+      - setup_remote_docker
+      - attach_workspace:
+          at: workspace
+      - run:
+          name: Load image
+          command: |
+            docker load --input workspace/docker_image/circleci_built_container.tar
+      - run:
+          name: Setup common environment variables
+          command: |
+            echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV
+      - clair_scanner/scan:
+          image: ${FULL_IMAGE_NAME}
+        
 
   deploy_docker_aws:
     docker:
@@ -121,12 +141,13 @@ workflows:
       - build_docker:
           requires:
             - test
+      - vuln_scan:
+          requires:
+            - build_docker
       - deploy_docker_aws:
           requires:
-            - test
-            - build_docker
+            - vuln_scan
       - deploy_docker_azure:
           requires:
-            - test
-            - build_docker
+            - vuln_scan
 
