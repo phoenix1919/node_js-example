@@ -72,11 +72,15 @@ jobs:
           command: |
             docker load --input workspace/docker_image/circleci_built_container.tar
       - run:
+          name: Setp know bad image
+          command: |
+            docker pull debian:jessie && docker tag debian:jessie clair_bad_container:latest
+      - run:
           name: Setup scanning variables
           command: |
             echo 'export FULL_IMAGE_NAME="${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${AWS_RESOURCE_NAME_PREFIX}:${CIRCLE_SHA1}"' >> $BASH_ENV;
             echo 'export THRESHOLD="High"' >> $BASH_ENV;
-            echo 'export IMAGE="circle_docker_test:latest"' >> $BASH_ENV;
+            echo 'export IMAGE="clair_bad_container:latest"' >> $BASH_ENV;
             echo 'export FAIL_ON_VULN="true"' >> $BASH_ENV;
       - run:
           name: "Vulnerability scan"
