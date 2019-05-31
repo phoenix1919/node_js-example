@@ -13,10 +13,10 @@ jobs:
     docker:
       - image: alpine:latest
     steps:
-      - checkout
       - run:
           name: Install git
           command: apk add git
+      - checkout
       - run: 
           name: Scan repo
           command: | 
