@@ -140,7 +140,7 @@ jobs:
 
   deploy_docker_azure:
     docker:
-      - image: circleci/python:3.6.1
+      - image: microsoft/azure-cli
     steps:
       - checkout
       - setup_remote_docker
