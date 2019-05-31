@@ -18,7 +18,7 @@ jobs:
           name: Install wget
           command: |
             apt-get update &&
-            apt-get install wget
+            apt-get install wget -y
       - run: 
           name: Scan repo
           command: | 
