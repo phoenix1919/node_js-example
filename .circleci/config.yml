@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-javascript/ for more details
 #
-version: 2.1
+version: 2
 orbs:
   aws-cli: circleci/aws-cli@0.1.4
   aws-ecs: circleci/aws-ecs@0.0.3
@@ -137,7 +137,8 @@ jobs:
             docker push $LATEST_IMAGE_NAME
 
   deploy_docker_azure:
-    executor: azure-cli/default
+    docker:
+      - image: circleci/python:3.6.1
     steps:
       - checkout
       - setup_remote_docker
