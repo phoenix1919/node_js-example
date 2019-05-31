@@ -18,11 +18,13 @@ jobs:
           command: apk add git
       - checkout
       - run: 
-          name: Scan repo
+          name: Get and extract repo scanner
           command: | 
             wget 'https://github.com/UKHomeOffice/repo-security-scanner/releases/download/0.4.0/scanrepo-0.4.0-linux-amd64.tar.gz' &&
             tar -xf scanrepo-0.4.0-linux-amd64.tar.gz &&
-            git log -p | ./scanrepo
+      - run:
+          name: Scan repo
+          command: git log -p | ./scanrepo
   test:
     docker:
       # specify the version you desire here
