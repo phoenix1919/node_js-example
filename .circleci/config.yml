@@ -14,10 +14,17 @@ jobs:
       - image: ubuntu:latest
     steps:
       - checkout
-      - run: | 
-          wget 'https://github.com/UKHomeOffice/repo-security-scanner/releases/download/0.4.0/scanrepo-0.4.0-linux-amd64.tar.gz' &&
-          tar -xf scanrepo-0.4.0-linux-amd64.tar.gz &&
-          git log -p | ./scanrepo
+      - run:
+          name: Install wget
+          command: |
+            apt-get update &&
+            apt-get install wget
+      - run: 
+          name: Scan repo
+          command: | 
+            wget 'https://github.com/UKHomeOffice/repo-security-scanner/releases/download/0.4.0/scanrepo-0.4.0-linux-amd64.tar.gz' &&
+            tar -xf scanrepo-0.4.0-linux-amd64.tar.gz &&
+            git log -p | ./scanrepo
   test:
     docker:
       # specify the version you desire here
