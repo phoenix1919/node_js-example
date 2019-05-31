@@ -9,6 +9,15 @@ orbs:
   azure-cli: circleci/azure-cli@1.1.0
   clair-scanner: ovotech/clair-scanner@1.4.26
 jobs:
+  key-scan:
+    docker:
+      - image: ubuntu:latest
+    steps:
+      - checkout
+      - run: | 
+          wget 'https://github.com/UKHomeOffice/repo-security-scanner/releases/download/0.4.0/scanrepo-0.4.0-linux-amd64.tar.gz' &&
+          tar -xf scanrepo-0.4.0-linux-amd64.tar.gz &&
+          git log -p | ./scanrepo
   test:
     docker:
       # specify the version you desire here
@@ -153,20 +162,18 @@ workflows:
   version: 2
   all:
     jobs:
+      - key-scan
       - test
       - build_docker:
           requires:
             - test
+            - key-scan
       - vuln_scan:
           requires:
-            - test
             - build_docker
       - deploy_docker_aws:
           requires:
-            - build_docker
             - vuln_scan
       - deploy_docker_azure:
           requires:
-            - build_docker
             - vuln_scan
-
